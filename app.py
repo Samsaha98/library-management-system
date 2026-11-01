@@ -1,12 +1,86 @@
-from flask import Flask, render_template, request, redirect
-from config import get_connection
+from flask import Flask, render_template, request, redirect, session
+from functools import wraps
+
+from config import (
+    get_connection,
+    get_noida_connection,
+    get_delhi_connection,
+    get_mumbai_connection
+)
 
 app = Flask(__name__)
+app.secret_key = "library_secret_key"
+def login_required(f):
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+
+        if "admin" not in session:
+            return redirect("/login")
+
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 # ---------------- HOME ---------------- #
 
+# ---------------- LOGIN ---------------- #
+
+@app.route("/login", methods=["GET", "POST"])
+@login_required
+def login():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT *
+            FROM admins
+            WHERE username=%s
+            AND password=%s
+        """, (
+            username,
+            password
+        ))
+
+        admin = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if admin:
+
+            session["admin"] = username
+
+            return redirect("/")
+
+        return render_template(
+            "login.html",
+            error="Invalid Username or Password"
+        )
+
+    return render_template("login.html")
+# ---------------- LOGOUT ---------------- #
+
+@app.route("/logout")
+@login_required
+def logout():
+
+    session.clear()
+
+    return redirect("/login")
+#---------------- HOME ---------------- #
 @app.route("/")
+@login_required
 def index():
+
+    if "admin" not in session:
+        return redirect("/login")
 
     search = request.args.get("search", "")
 
@@ -68,6 +142,7 @@ def index():
 # ---------------- ADD BOOK ---------------- #
 
 @app.route("/add", methods=["GET", "POST"])
+@login_required
 def add_book():
     if request.method == "POST":
         title = request.form["title"]
@@ -99,6 +174,7 @@ def add_book():
 # ---------------- EDIT BOOK ---------------- #
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
+@login_required
 def edit_book(id):
 
     conn = get_connection()
@@ -170,6 +246,7 @@ def edit_book(id):
 # ---------------- ISSUE BOOK PAGE ---------------- #
 
 @app.route("/issue", methods=["GET", "POST"])
+@login_required
 def issue_book():
     conn = get_connection()
     cursor = conn.cursor()
@@ -218,6 +295,7 @@ def issue_book():
 # ---------------- RETURN BOOK ---------------- #
 
 @app.route("/return")
+@login_required
 def return_list():
     conn = get_connection()
     cursor = conn.cursor()
@@ -244,6 +322,7 @@ def return_list():
 
 
 @app.route("/return/<int:id>")
+@login_required
 def return_book(id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -280,6 +359,7 @@ def return_book(id):
 # ---------------- DELETE BOOK ---------------- #
 
 @app.route("/delete/<int:id>")
+@login_required
 def delete_book(id):
 
     conn = get_connection()
@@ -314,6 +394,7 @@ def delete_book(id):
 # ---------------- STUDENTS ---------------- #
 
 @app.route("/students")
+@login_required
 def students():
 
     conn = get_connection()
@@ -338,6 +419,7 @@ def students():
 # ---------------- ADD STUDENT ---------------- #
 
 @app.route("/add-student", methods=["GET", "POST"])
+@login_required
 def add_student():
 
     if request.method == "POST":
@@ -374,6 +456,7 @@ def add_student():
     # ---------------- EDIT STUDENT ---------------- #
 
 @app.route("/edit-student/<int:id>", methods=["GET", "POST"])
+@login_required
 def edit_student(id):
 
     conn = get_connection()
@@ -429,6 +512,7 @@ def edit_student(id):
 # ---------------- DELETE STUDENT ---------------- #
 
 @app.route("/delete-student/<int:id>")
+@login_required
 def delete_student(id):
 
     conn = get_connection()
@@ -460,7 +544,117 @@ def delete_student(id):
     conn.close()
 
     return redirect("/students")
-    
+# ---------------- TRANSACTIONS ---------------- #
+
+@app.route("/transactions")
+@login_required
+def transactions():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+        SELECT
+
+            issued_books.id,
+
+            students.name,
+
+            books.title,
+
+            issued_books.issue_date,
+
+            issued_books.due_date,
+
+            issued_books.return_date,
+
+            issued_books.status,
+
+        CASE
+
+            WHEN issued_books.status='Returned'
+            THEN GREATEST(DATEDIFF(issued_books.return_date, issued_books.due_date),0)*10
+
+            ELSE GREATEST(DATEDIFF(CURDATE(), issued_books.due_date),0)*10
+
+            END AS fine
+
+            FROM issued_books
+
+        JOIN students
+            ON students.id=issued_books.student_id
+
+        JOIN books
+            ON books.id=issued_books.book_id
+
+        ORDER BY issued_books.id DESC
+
+    """)
+
+    transactions = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        "transactions.html",
+        transactions=transactions
+    )
+# ---------------- SEARCH ALL CAMPUSES ---------------- #
+
+@app.route("/all-campus", methods=["GET", "POST"])
+def all_campus():
+
+    results = []
+
+    if request.method == "POST":
+
+        keyword = request.form["keyword"]
+
+        campuses = [
+            ("Greater Noida", get_noida_connection),
+            ("Delhi", get_delhi_connection),
+            ("Mumbai", get_mumbai_connection)
+        ]
+
+        for campus_name, connection_function in campuses:
+
+            conn = connection_function()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                SELECT
+                    title,
+                    author,
+                    available
+                FROM books
+                WHERE title LIKE %s
+                   OR author LIKE %s
+            """, (
+                "%" + keyword + "%",
+                "%" + keyword + "%"
+            ))
+
+            books = cursor.fetchall()
+
+            for book in books:
+
+                results.append({
+                    "campus": campus_name,
+                    "title": book["title"],
+                    "author": book["author"],
+                    "available": book["available"]
+                })
+
+            cursor.close()
+            conn.close()
+
+    return render_template(
+        "all_campus.html",
+        results=results
+    )
+
 # ---------------- RUN APP ---------------- #
 
 if __name__ == "__main__":
