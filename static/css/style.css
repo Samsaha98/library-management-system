@@ -1,0 +1,93 @@
+/* Background */
+body{
+    background:#0f172a;
+    color:#f8fafc;
+}
+
+/* Navbar */
+.navbar{
+    background:#111827 !important;
+}
+
+/* Dashboard Cards */
+.card{
+    background:#1e293b;
+    color:white;
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.35);
+}
+
+/* Table */
+/* ================= TABLE ================= */
+
+.table{
+    background:#1e293b !important;
+    color:#f8fafc !important;
+    border-color:#334155 !important;
+}
+
+.table thead th{
+    background:#111827 !important;
+    color:#ffffff !important;
+    border-color:#334155 !important;
+}
+
+.table tbody tr{
+    background:#1e293b !important;
+    color:#f8fafc !important;
+}
+
+.table tbody td{
+    background:#1e293b !important;
+    color:#f8fafc !important;
+    border-color:#334155 !important;
+}
+
+.table tbody tr:hover td{
+    background:#334155 !important;
+}
+
+/* Search Box */
+.form-control{
+    background:#1e293b;
+    color:white;
+    border:1px solid #334155;
+}
+
+.form-control:focus{
+    background:#1e293b;
+    color:white;
+    border-color:#3b82f6;
+    box-shadow:none;
+}
+
+/* Placeholder */
+.form-control::placeholder{
+    color:#94a3b8;
+}
+
+/* Buttons */
+.btn-primary{
+    background:#2563eb;
+    border:none;
+}
+
+.btn-primary:hover{
+    background:#1d4ed8;
+}
+
+/* Outline Buttons */
+.btn-outline-light{
+    border-color:#475569;
+}
+
+.btn-outline-light:hover{
+    background:#2563eb;
+    border-color:#2563eb;
+}
+
+/* Headings */
+h1,h2,h3,h4,h5{
+    color:white;
+}

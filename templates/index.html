@@ -1,45 +1,113 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Library Management System</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>📚 Library Management System</h1>
+{% block content %}
 
-<a href="/add">
-    <button>Add Book</button>
+<h2 class="mb-4">
+    📚 Dashboard
+</h2>
+
+<div class="row mb-4">
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h2>{{ total_books }}</h2>
+            <p>Total Books</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h2>{{ available_books }}</h2>
+            <p>Available</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h2>{{ issued_books }}</h2>
+            <p>Issued</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 text-center">
+            <h2>{{ total_students }}</h2>
+            <p>Students</p>
+        </div>
+    </div>
+
+</div>
+
+<form method="GET" action="/" class="mb-4">
+
+<div class="input-group">
+
+<input
+type="text"
+class="form-control"
+placeholder="Search by Title, Author, ISBN..."
+name="search"
+value="{{ search if search else '' }}">
+
+<button class="btn btn-primary">
+Search
+</button>
+
+</div>
+
+</form>
+
+<table class="table table-bordered table-hover align-middle">
+
+<thead class="table-dark">
+
+<tr>
+
+<th>ID</th>
+<th>Title</th>
+<th>Author</th>
+<th>Category</th>
+<th>ISBN</th>
+<th>Qty</th>
+<th>Available</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for book in books %}
+
+<tr>
+
+<td>{{ book.id }}</td>
+<td>{{ book.title }}</td>
+<td>{{ book.author }}</td>
+<td>{{ book.category }}</td>
+<td>{{ book.isbn }}</td>
+<td>{{ book.quantity }}</td>
+<td>{{ book.available }}</td>
+<td>
+
+<a href="/edit/{{ book.id }}" class="btn btn-warning btn-sm">
+    Edit
 </a>
-<a href="/return">
-    <button>Return Book</button>
+<a href="/delete/{{ book.id }}"
+   class="btn btn-danger btn-sm"
+   onclick="return confirm('Delete this book?')">
+    Delete
 </a>
 
-<br><br>
+</td>
 
-<table border="1" cellpadding="10">
-    <tr>
-        <th>ID</th>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Category</th>
-        <th>ISBN</th>
-        <th>Quantity</th>
-        <th>Available</th>
-    </tr>
+</tr>
 
-    {% for book in books %}
-    <tr>
-        <td>{{ book.id }}</td>
-        <td>{{ book.title }}</td>
-        <td>{{ book.author }}</td>
-        <td>{{ book.category }}</td>
-        <td>{{ book.isbn }}</td>
-        <td>{{ book.quantity }}</td>
-        <td>{{ book.available }}</td>
-    </tr>
-    {% endfor %}
+{% endfor %}
+
+</tbody>
 
 </table>
 
-</body>
-</html>
+{% endblock %}
