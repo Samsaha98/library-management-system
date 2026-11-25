@@ -5,6 +5,98 @@
 <h2 class="mb-4">
     📚 Dashboard
 </h2>
+<div class="card mt-4 shadow">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Recent Transactions</h5>
+    </div>
+
+    <div class="card-body p-0">
+
+        <table class="table table-striped table-hover mb-0">
+
+            <thead class="table-dark">
+
+                <tr>
+                    <th>Student</th>
+                    <th>Book</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for row in recent_transactions %}
+
+                <tr>
+
+                    <td>{{ row.name }}</td>
+
+                    <td>{{ row.title }}</td>
+
+                    <td>
+
+                        {% if row.status=="Issued" %}
+                            <span class="badge bg-warning text-dark">
+                                Issued
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">
+                                Returned
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>{{ row.issue_date }}</td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+<div class="row mt-4">
+
+{% for campus in campus_stats %}
+
+<div class="col-md-4 mb-3">
+
+<div class="card bg-secondary text-white shadow">
+
+<div class="card-body">
+
+<h5>{{ campus.campus }}</h5>
+
+<hr>
+
+<p>📚 Total Books :
+<b>{{ campus.books }}</b></p>
+
+<p>📖 Available :
+<b>{{ campus.available }}</b></p>
+
+<p>📕 Issued :
+<b>{{ campus.issued }}</b></p>
+
+<p>👨 Students :
+<b>{{ campus.students }}</b></p>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
 
 <div class="row mb-4">
 

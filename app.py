@@ -5,7 +5,8 @@ from config import (
     get_connection,
     get_noida_connection,
     get_delhi_connection,
-    get_mumbai_connection
+    get_mumbai_connection,
+    get_campus_connection
 )
 
 app = Flask(__name__)
@@ -84,6 +85,8 @@ def index():
 
     search = request.args.get("search", "")
 
+    # ---------------- Main Database ---------------- #
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -101,7 +104,10 @@ def index():
     """)
     issued_books = cursor.fetchone()["issued"]
 
-    cursor.execute("SELECT COUNT(*) AS students FROM students")
+    cursor.execute("""
+        SELECT COUNT(*) AS students
+        FROM students
+    """)
     total_students = cursor.fetchone()["students"]
 
     # Search
@@ -123,12 +129,81 @@ def index():
 
     else:
 
-        cursor.execute("SELECT * FROM books")
+        cursor.execute("""
+            SELECT *
+            FROM books
+        """)
 
     books = cursor.fetchall()
+    # Recent Transactions
+    cursor.execute("""
+        SELECT
+            students.name,
+            books.title,
+            issued_books.status,
+            issued_books.issue_date
+        FROM issued_books
+        JOIN students ON students.id = issued_books.student_id
+        JOIN books ON books.id = issued_books.book_id
+        ORDER BY issued_books.id DESC
+        LIMIT 5
+    """)
+
+    recent_transactions = cursor.fetchall()
 
     cursor.close()
     conn.close()
+
+    # ---------------- Campus Statistics ---------------- #
+
+    campuses = [
+        ("Greater Noida", get_noida_connection),
+        ("Delhi", get_delhi_connection),
+        ("Mumbai", get_mumbai_connection)
+    ]
+
+    campus_stats = []
+
+    for campus_name, connection_function in campuses:
+
+        conn = connection_function()
+        cursor = conn.cursor()
+
+        # Total Books
+        cursor.execute("SELECT COUNT(*) AS total FROM books")
+        total = cursor.fetchone()["total"]
+
+        # Available Copies
+        cursor.execute("SELECT SUM(available) AS available FROM books")
+        available = cursor.fetchone()["available"] or 0
+
+        # Issued Books
+        cursor.execute("""
+            SELECT COUNT(*) AS issued
+            FROM issued_books
+            WHERE status='Issued'
+        """)
+        issued = cursor.fetchone()["issued"]
+
+        # Students
+        cursor.execute("""
+            SELECT COUNT(*) AS students
+            FROM students
+        """)
+        students = cursor.fetchone()["students"]
+
+        campus_stats.append({
+            "campus": campus_name,
+            "books": total,
+            "available": available,
+            "issued": issued,
+            "students": students
+        })
+
+        cursor.close()
+        conn.close()
+
+    # ---------------- Dashboard ---------------- #
 
     return render_template(
         "index.html",
@@ -137,7 +212,9 @@ def index():
         total_books=total_books,
         available_books=available_books,
         issued_books=issued_books,
-        total_students=total_students
+        total_students=total_students,
+        campus_stats=campus_stats,
+        recent_transactions=recent_transactions
     )
 # ---------------- ADD BOOK ---------------- #
 
@@ -248,40 +325,95 @@ def edit_book(id):
 @app.route("/issue", methods=["GET", "POST"])
 @login_required
 def issue_book():
-    conn = get_connection()
+
+    # Default campus
+    campus = request.args.get("campus", "noida")
+
+    # Select database connection
+    if campus == "noida":
+        conn = get_noida_connection()
+    elif campus == "delhi":
+        conn = get_delhi_connection()
+    else:
+        conn = get_mumbai_connection()
+
     cursor = conn.cursor()
 
+    # ---------------- POST ---------------- #
     if request.method == "POST":
+
+        campus = request.form["campus"]
+
+        # Close old connection
+        cursor.close()
+        conn.close()
+
+        # Reconnect according to selected campus
+        if campus == "noida":
+            conn = get_noida_connection()
+        elif campus == "delhi":
+            conn = get_delhi_connection()
+        else:
+            conn = get_mumbai_connection()
+
+        cursor = conn.cursor()
+
         student_id = request.form["student_id"]
         book_id = request.form["book_id"]
         issue_date = request.form["issue_date"]
         due_date = request.form["due_date"]
 
-        # Issue book entry
-        cursor.execute("""
-            INSERT INTO issued_books
-            (student_id, book_id, issue_date, due_date, status)
-            VALUES (%s, %s, %s, %s, 'Issued')
-        """, (student_id, book_id, issue_date, due_date))
+        # Check availability
+        cursor.execute(
+            "SELECT available FROM books WHERE id=%s",
+            (book_id,)
+        )
 
-        # Reduce available books
-        cursor.execute("""
-            UPDATE books
-            SET available = available - 1
-            WHERE id = %s
-        """, (book_id,))
+        book = cursor.fetchone()
 
-        conn.commit()
+        if book and book["available"] > 0:
+
+            # Issue book
+            cursor.execute("""
+                INSERT INTO issued_books
+                (student_id, book_id, issue_date, due_date, status)
+                VALUES (%s, %s, %s, %s, 'Issued')
+            """, (
+                student_id,
+                book_id,
+                issue_date,
+                due_date
+            ))
+
+            # Reduce stock
+            cursor.execute("""
+                UPDATE books
+                SET available = available - 1
+                WHERE id=%s
+            """, (book_id,))
+
+            conn.commit()
+
         cursor.close()
         conn.close()
 
-        return redirect("/")
+        return redirect("/issue?campus=" + campus)
 
-    # GET request
-    cursor.execute("SELECT id, name FROM students")
+    # ---------------- GET ---------------- #
+
+    cursor.execute("""
+        SELECT id, name
+        FROM students
+        ORDER BY name
+    """)
     students = cursor.fetchall()
 
-    cursor.execute("SELECT id, title FROM books WHERE available > 0")
+    cursor.execute("""
+        SELECT id, title
+        FROM books
+        WHERE available > 0
+        ORDER BY title
+    """)
     books = cursor.fetchall()
 
     cursor.close()
@@ -290,7 +422,8 @@ def issue_book():
     return render_template(
         "issue_book.html",
         students=students,
-        books=books
+        books=books,
+        campus=campus
     )
 # ---------------- RETURN BOOK ---------------- #
 
@@ -654,7 +787,46 @@ def all_campus():
         "all_campus.html",
         results=results
     )
+# ---------------- ALL CAMPUS BOOKS ---------------- #
+@app.route("/all-campus-books")
+@login_required
+def all_campus_books():
 
+    campuses = [
+        ("Greater Noida", get_noida_connection),
+        ("Delhi", get_delhi_connection),
+        ("Mumbai", get_mumbai_connection)
+    ]
+
+    books = []
+
+    for campus_name, connection_function in campuses:
+
+        conn = connection_function()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                id,
+                title,
+                author,
+                available
+            FROM books
+        """)
+
+        rows = cursor.fetchall()
+
+        for row in rows:
+            row["campus"] = campus_name
+            books.append(row)
+
+        cursor.close()
+        conn.close()
+
+    return render_template(
+        "all_campus_books.html",
+        books=books
+    )
 # ---------------- RUN APP ---------------- #
 
 if __name__ == "__main__":

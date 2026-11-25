@@ -33,3 +33,19 @@ def get_mumbai_connection():
     config = DB_CONFIG.copy()
     config["database"] = "library_mumbai"
     return pymysql.connect(**config)
+# ---------- Campus Helper ----------
+def get_campus_connection(campus):
+
+    campus = campus.lower()
+
+    if campus == "noida":
+        return get_noida_connection()
+
+    elif campus == "delhi":
+        return get_delhi_connection()
+
+    elif campus == "mumbai":
+        return get_mumbai_connection()
+
+    else:
+        return get_noida_connection()
