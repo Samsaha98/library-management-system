@@ -1,93 +1,647 @@
-/* Background */
+/* =====================================
+   DISTRIBUTED LIBRARY MANAGEMENT SYSTEM
+   PREMIUM BLACK & WHITE THEME
+===================================== */
+
+
+/* ---------- Global ---------- */
+
+*{
+    box-sizing:border-box;
+}
+
+
 body{
-    background:#0f172a;
-    color:#f8fafc;
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
 }
 
-/* Navbar */
+
+
+/* ---------- Navbar ---------- */
+
+
 .navbar{
-    background:#111827 !important;
+
+    background:#000 !important;
+
+    border-bottom:1px solid #333;
+
+    padding:15px 0;
+
 }
 
-/* Dashboard Cards */
+
+.navbar-brand{
+
+    color:#fff !important;
+
+    font-size:22px;
+
+    font-weight:700;
+
+}
+
+
+.nav-link{
+
+    color:#fff !important;
+
+    font-weight:500;
+
+    transition:.3s;
+
+}
+
+
+.nav-link:hover{
+
+    color:#aaa !important;
+
+}
+
+
+
+.navbar-toggler{
+
+    border-color:#555;
+
+}
+
+
+
+/* ---------- Main Container ---------- */
+
+
+.container{
+
+    max-width:1200px;
+
+}
+
+
+
+/* ---------- Headings ---------- */
+
+
+h1,h2,h3,h4,h5,h6{
+
+    color:#fff !important;
+
+    font-weight:600;
+
+}
+
+
+
+/* ---------- Cards ---------- */
+
+
 .card{
-    background:#1e293b;
-    color:white;
-    border:none;
-    border-radius:15px;
-    box-shadow:0 5px 15px rgba(0,0,0,.35);
+
+    background:#111 !important;
+
+    color:#fff !important;
+
+    border:1px solid #333 !important;
+
+    border-radius:16px;
+
+    box-shadow:
+    0 10px 25px rgba(255,255,255,0.04);
+
+    transition:.3s;
+
 }
 
-/* Table */
-/* ================= TABLE ================= */
+
+
+.card:hover{
+
+    transform:translateY(-4px);
+
+    border-color:#777 !important;
+
+}
+
+
+
+.card-body{
+
+    color:#fff !important;
+
+}
+
+
+
+.card-header{
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    border-bottom:1px solid #333 !important;
+
+}
+
+
+
+/* ---------- Dashboard Statistics ---------- */
+
+
+.fs-1,
+.fs-2,
+.fs-3{
+
+    color:#fff !important;
+
+}
+
+
+.text-body-secondary{
+
+    color:#aaa !important;
+
+}
+
+
+
+/* ---------- Tables ---------- */
+
 
 .table{
-    background:#1e293b !important;
-    color:#f8fafc !important;
-    border-color:#334155 !important;
+
+    background:#111 !important;
+
+    color:#fff !important;
+
+    border-color:#333 !important;
+
 }
+
+
 
 .table thead th{
-    background:#111827 !important;
-    color:#ffffff !important;
-    border-color:#334155 !important;
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    border-color:#333 !important;
+
 }
+
+
 
 .table tbody tr{
-    background:#1e293b !important;
-    color:#f8fafc !important;
+
+    background:#111 !important;
+
+    color:#fff !important;
+
 }
+
+
 
 .table tbody td{
-    background:#1e293b !important;
-    color:#f8fafc !important;
-    border-color:#334155 !important;
+
+    background:#111 !important;
+
+    color:#fff !important;
+
+    border-color:#333 !important;
+
 }
 
-.table tbody tr:hover td{
-    background:#334155 !important;
+
+
+.table-hover tbody tr:hover td{
+
+    background:#222 !important;
+
 }
 
-/* Search Box */
+
+
+/* ---------- Search ---------- */
+
+
 .form-control{
-    background:#1e293b;
-    color:white;
-    border:1px solid #334155;
+
+    background:#111 !important;
+
+    color:#fff !important;
+
+    border:1px solid #444 !important;
+
 }
+
+
 
 .form-control:focus{
-    background:#1e293b;
-    color:white;
-    border-color:#3b82f6;
-    box-shadow:none;
+
+    background:#111 !important;
+
+    color:#fff !important;
+
+    border-color:#fff !important;
+
+    box-shadow:none !important;
+
 }
 
-/* Placeholder */
+
+
 .form-control::placeholder{
-    color:#94a3b8;
+
+    color:#888;
+
 }
 
-/* Buttons */
-.btn-primary{
-    background:#2563eb;
-    border:none;
+
+
+.input-group-text{
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    border:1px solid #444 !important;
+
 }
+
+
+
+/* ---------- Buttons ---------- */
+
+
+.btn{
+
+    border-radius:10px;
+
+    font-weight:500;
+
+}
+
+
+
+/* White Primary Button */
+
+.btn-primary{
+
+    background:#fff !important;
+
+    color:#000 !important;
+
+    border:none;
+
+}
+
+
 
 .btn-primary:hover{
-    background:#1d4ed8;
+
+    background:#ccc !important;
+
 }
+
+
 
 /* Outline Buttons */
+
+
 .btn-outline-light{
-    border-color:#475569;
+
+    color:#fff !important;
+
+    border-color:#fff !important;
+
 }
+
+
 
 .btn-outline-light:hover{
-    background:#2563eb;
-    border-color:#2563eb;
+
+    background:#fff !important;
+
+    color:#000 !important;
+
 }
 
-/* Headings */
-h1,h2,h3,h4,h5{
-    color:white;
+
+
+/* All colored buttons convert */
+
+.btn-success,
+.btn-danger,
+.btn-info,
+.btn-warning{
+
+
+    background:#fff !important;
+
+    color:#000 !important;
+
+    border:none !important;
+
+}
+
+
+
+.btn-success:hover,
+.btn-danger:hover,
+.btn-info:hover,
+.btn-warning:hover{
+
+
+    background:#ccc !important;
+
+}
+
+
+
+/* ---------- Badges ---------- */
+
+
+.badge{
+
+    border-radius:20px;
+
+    padding:6px 12px;
+
+}
+
+
+
+/* ---------- Progress Bar ---------- */
+
+
+.progress{
+
+    background:#333 !important;
+
+    height:8px;
+
+}
+
+
+
+.progress-bar{
+
+    background:#fff !important;
+
+}
+
+
+
+/* ---------- Dropdown ---------- */
+
+
+.dropdown-menu{
+
+    background:#111 !important;
+
+    border:1px solid #333;
+
+}
+
+
+
+.dropdown-item{
+
+    color:#fff !important;
+
+}
+
+
+
+.dropdown-item:hover{
+
+    background:#222 !important;
+
+}
+
+
+
+/* ---------- Links ---------- */
+
+
+a{
+
+    color:#fff;
+
+    text-decoration:none;
+
+}
+
+
+a:hover{
+
+    color:#aaa;
+
+}
+
+
+
+/* ---------- Scrollbar ---------- */
+
+
+::-webkit-scrollbar{
+
+    width:8px;
+
+}
+
+
+
+::-webkit-scrollbar-track{
+
+    background:#000;
+
+}
+
+
+
+::-webkit-scrollbar-thumb{
+
+    background:#555;
+
+    border-radius:10px;
+
+}
+
+
+
+/* ---------- Alerts ---------- */
+
+
+.alert{
+
+    background:#111 !important;
+
+    color:#fff !important;
+
+    border:1px solid #333;
+
+}
+
+
+
+/* ---------- Mobile ---------- */
+
+
+@media(max-width:768px){
+
+    .navbar-brand{
+
+        font-size:18px;
+
+    }
+
+
+    .card{
+
+        border-radius:12px;
+
+    }
+
+}
+/* ==========================================
+   ADD BOOK PAGE
+========================================== */
+
+.card{
+
+    background:#111 !important;
+
+    border:1px solid #333 !important;
+
+    border-radius:18px;
+
+}
+
+
+.card-header{
+
+    background:#000 !important;
+
+    color:#fff !important;
+
+    border-bottom:1px solid #333;
+
+}
+
+
+.card-header h3{
+
+    font-weight:700;
+
+}
+
+
+.card-body{
+
+    padding:30px;
+
+}
+
+
+/* Labels */
+
+label{
+
+    color:#fff;
+
+    font-weight:600;
+
+    margin-bottom:8px;
+
+}
+
+
+/* Inputs */
+
+.form-control,
+.form-select{
+
+    background:#1a1a1a !important;
+
+    color:#fff !important;
+
+    border:1px solid #444 !important;
+
+    border-radius:10px;
+
+    padding:12px;
+
+}
+
+
+.form-control:focus,
+.form-select:focus{
+
+    background:#1a1a1a !important;
+
+    color:#fff !important;
+
+    border-color:#fff !important;
+
+    box-shadow:0 0 10px rgba(255,255,255,.15);
+
+}
+
+
+/* Buttons */
+
+.btn-primary{
+
+    background:#fff !important;
+
+    color:#000 !important;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px 25px;
+
+    font-weight:600;
+
+}
+
+
+.btn-primary:hover{
+
+    background:#d9d9d9 !important;
+
+}
+
+
+/* Cancel Button */
+
+.btn-secondary{
+
+    background:transparent !important;
+
+    color:#fff !important;
+
+    border:1px solid #666 !important;
+
+}
+
+
+.btn-secondary:hover{
+
+    background:#fff !important;
+
+    color:#000 !important;
+
 }

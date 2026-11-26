@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
 from functools import wraps
-
 from config import (
     get_connection,
     get_noida_connection,
@@ -8,7 +7,6 @@ from config import (
     get_mumbai_connection,
     get_campus_connection
 )
-
 app = Flask(__name__)
 app.secret_key = "library_secret_key"
 def login_required(f):
@@ -28,7 +26,6 @@ def login_required(f):
 # ---------------- LOGIN ---------------- #
 
 @app.route("/login", methods=["GET", "POST"])
-@login_required
 def login():
 
     if request.method == "POST":
@@ -325,19 +322,52 @@ def edit_book(id):
 @app.route("/issue", methods=["GET", "POST"])
 @login_required
 def issue_book():
-
-    # Default campus
-    campus = request.args.get("campus", "noida")
-
-    # Select database connection
-    if campus == "noida":
-        conn = get_noida_connection()
-    elif campus == "delhi":
-        conn = get_delhi_connection()
-    else:
-        conn = get_mumbai_connection()
-
+    conn = get_connection()
     cursor = conn.cursor()
+
+    if request.method == "POST":
+        student_id = request.form["student_id"]
+        book_id = request.form["book_id"]
+        issue_date = request.form["issue_date"]
+        due_date = request.form["due_date"]
+
+        cursor.execute("SELECT available FROM books WHERE id=%s", (book_id,))
+        book = cursor.fetchone()
+
+        if book and book["available"] > 0:
+            cursor.execute("""
+                INSERT INTO issued_books
+                (student_id, book_id, issue_date, due_date, status)
+                VALUES (%s, %s, %s, %s, 'Issued')
+            """, (student_id, book_id, issue_date, due_date))
+
+            cursor.execute("""
+                UPDATE books
+                SET available = available - 1
+                WHERE id=%s
+            """, (book_id,))
+
+            conn.commit()
+
+        cursor.close()
+        conn.close()
+        return redirect("/issue")
+
+    cursor.execute("SELECT id, name FROM students ORDER BY name")
+    students = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id, title
+        FROM books
+        WHERE available > 0
+        ORDER BY title
+    """)
+    books = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return render_template("issue_book.html", students=students, books=books)
 
     # ---------------- POST ---------------- #
     if request.method == "POST":
@@ -407,6 +437,9 @@ def issue_book():
         ORDER BY name
     """)
     students = cursor.fetchall()
+    print("Campus:", campus)
+    print("Total Students:", len(students))
+    print(students[:5])
 
     cursor.execute("""
         SELECT id, title
@@ -447,7 +480,6 @@ def return_list():
     """)
 
     issued = cursor.fetchall()
-
     cursor.close()
     conn.close()
 
@@ -460,19 +492,13 @@ def return_book(id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT book_id FROM issued_books WHERE id=%s",
-        (id,)
-    )
-
+    cursor.execute("SELECT book_id FROM issued_books WHERE id=%s", (id,))
     record = cursor.fetchone()
 
     if record:
-
         cursor.execute("""
             UPDATE issued_books
-            SET
-                status='Returned',
+            SET status='Returned',
                 return_date=CURDATE()
             WHERE id=%s
         """, (id,))
@@ -487,8 +513,8 @@ def return_book(id):
 
     cursor.close()
     conn.close()
-
     return redirect("/return")
+
 # ---------------- DELETE BOOK ---------------- #
 
 @app.route("/delete/<int:id>")
@@ -682,58 +708,35 @@ def delete_student(id):
 @app.route("/transactions")
 @login_required
 def transactions():
-
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-
         SELECT
-
             issued_books.id,
-
             students.name,
-
             books.title,
-
             issued_books.issue_date,
-
             issued_books.due_date,
-
             issued_books.return_date,
-
             issued_books.status,
-
-        CASE
-
-            WHEN issued_books.status='Returned'
-            THEN GREATEST(DATEDIFF(issued_books.return_date, issued_books.due_date),0)*10
-
-            ELSE GREATEST(DATEDIFF(CURDATE(), issued_books.due_date),0)*10
-
+            CASE
+                WHEN issued_books.status='Returned'
+                THEN GREATEST(DATEDIFF(issued_books.return_date, issued_books.due_date),0)*10
+                ELSE GREATEST(DATEDIFF(CURDATE(), issued_books.due_date),0)*10
             END AS fine
-
-            FROM issued_books
-
-        JOIN students
-            ON students.id=issued_books.student_id
-
-        JOIN books
-            ON books.id=issued_books.book_id
-
+        FROM issued_books
+        JOIN students ON students.id=issued_books.student_id
+        JOIN books ON books.id=issued_books.book_id
         ORDER BY issued_books.id DESC
-
     """)
 
     transactions = cursor.fetchall()
-
     cursor.close()
     conn.close()
 
-    return render_template(
-        "transactions.html",
-        transactions=transactions
-    )
+    return render_template("transactions.html", transactions=transactions)
+
 # ---------------- SEARCH ALL CAMPUSES ---------------- #
 
 @app.route("/all-campus", methods=["GET", "POST"])
